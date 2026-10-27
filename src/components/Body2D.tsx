@@ -11,15 +11,14 @@ const BASE_FRONT = [
   'M100 60 C112 60 122 64 131 72 C136 90 129 112 123 132 C121 152 125 172 129 192 L100 194 Z', // torso
   'M134 72 C148 64 161 74 161 96 C163 122 163 142 161 156 C167 174 169 198 167 222 L158 224 C152 206 146 180 142 160 C138 140 135 108 134 72 Z', // arm
   'M100 188 L131 186 C136 220 134 272 128 302 C131 332 130 352 125 374 L111 374 C108 352 108 332 110 304 C104 280 100 230 100 188 Z', // leg
-  'M92 44 L108 44 L108 62 L92 62 Z', // neck
 ]
 const BASE_BACK = BASE_FRONT
 
-const HEAD = 'M100 8 C111 8 117 18 116 30 C115 42 108 50 100 50 Z'
 const HAND = 'M158 224 C166 224 171 232 170 242 C169 252 163 256 159 250 C156 242 156 232 158 224 Z'
 const FOOT = 'M111 374 L125 374 C131 378 134 384 132 389 L108 389 C108 383 109 378 111 374 Z'
 
 const FRONT: Shapes = {
+  Neck: ['M100 45 L108 45 C109 52 110 58 111 64 L100 64 Z'],
   Traps: ['M100 52 L109 50 C119 56 129 63 137 70 L131 76 C121 70 110 66 100 64 Z'],
   Shoulders: ['M131 72 C143 66 156 72 158 86 C159 97 156 106 152 112 L141 106 C139 94 136 82 131 72 Z'],
   Chest: ['M100 68 C112 65 124 71 131 78 C133 92 128 106 118 111 C110 113 104 111 100 108 Z'],
@@ -40,6 +39,7 @@ const FRONT: Shapes = {
 FRONT.Abdominals!.push('M115 114 C122 116 127 122 127 132 L125 168 C121 173 117 173 114 169 C116 150 115 130 115 114 Z')
 
 const BACK: Shapes = {
+  Neck: ['M100 45 L108 45 L109 56 L100 56 Z'],
   Traps: ['M100 52 L109 50 C121 58 133 66 142 74 C132 88 114 96 100 104 Z'],
   Shoulders: ['M137 72 C148 68 158 76 158 88 C159 98 156 106 152 112 L141 106 C140 94 139 82 137 72 Z'],
   'Upper Back': ['M100 108 C112 102 126 94 136 88 C138 100 132 110 124 116 C114 116 104 113 100 112 Z'],
@@ -88,8 +88,7 @@ function Figure({ side, ...rest }: { side: 'front' | 'back' } & Omit<Parameters<
   const base = side === 'front' ? BASE_FRONT : BASE_BACK
   const half = (
     <>
-      {base.map((d, i) => <path key={i} d={d} fill="#2c3340" stroke="#0d1016" strokeWidth={0.8} strokeLinejoin="round" />)}
-      <path d={HEAD} fill="#2c3340" />
+      {base.map((d, i) => <path key={i} d={d} fill="#2c3340" />)}
       <path d={HAND} fill="#2c3340" />
       <path d={FOOT} fill="#2c3340" />
       <Half shapes={side === 'front' ? FRONT : BACK} {...rest} />
@@ -97,6 +96,7 @@ function Figure({ side, ...rest }: { side: 'front' | 'back' } & Omit<Parameters<
   )
   return (
     <svg viewBox="0 0 200 400" style={{ flex: 1, minWidth: 0, height: '100%' }} role="img" aria-label={`${side} view`}>
+      <ellipse cx={100} cy={28} rx={15} ry={20} fill="#2c3340" />
       <g>{half}</g>
       <g transform={MIRROR}>{half}</g>
     </svg>
