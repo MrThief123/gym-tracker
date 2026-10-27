@@ -3,7 +3,7 @@ import { Bar, BarChart, CartesianGrid, Legend as RLegend, PolarAngleAxis, PolarG
 import Body, { BodyMode } from './components/Body'
 import { Card, fmtSets, Legend, MuscleList, Seg, Stat } from './components/ui'
 import {
-  addDays, bucketLabel, buckets, exerciseSummaries, inRange, mappingFor, muscleStats, Opts, Period, rangeFor,
+  addDays, bucketLabel, buckets, canGoForward, exerciseSummaries, inRange, mappingFor, muscleStats, Opts, Period, rangeFor,
   scoresFor, shiftAnchor, startOfDay, summarize, unmappedExercises, Workout, Overrides, periodLabel, parseWorkouts,
 } from './lib/data'
 import { heatColor, Muscle, MUSCLES, Mapping } from './lib/muscles'
@@ -150,13 +150,17 @@ export function SetCountView({ workouts, opts, period, anchor }: Common) {
 // ---------- Muscle distribution (chart) ----------
 export function DistributionChartView({ workouts, opts, period, anchor }: Common) {
   const cur = scoresFor(inRange(workouts, rangeFor(period, anchor)), opts)
-  const hasPrev = period !== 'all'
+  const [showPrev, setShowPrev] = useState(true)
+  const hasPrev = period !== 'all' && showPrev
   const prev = hasPrev ? scoresFor(inRange(workouts, rangeFor(period, shiftAnchor(period, anchor, -1))), opts) : null
   const norm = (s: typeof cur) => { const t = Object.values(s).reduce((a, b) => a + b, 0) || 1; return s && ((m: Muscle) => Math.round((s[m] / t) * 1000) / 10) }
   const c = norm(cur), p = prev ? norm(prev) : null
   const data = MUSCLES.map((m) => ({ muscle: m, Current: c(m), ...(p ? { Previous: p(m) } : {}) }))
   return (
-    <Card title="Muscle distribution (% of weighted sets)">
+    <Card
+      title="Muscle distribution (% of weighted sets)"
+      right={period !== 'all' && <label className="chk"><input type="checkbox" checked={showPrev} onChange={(e) => setShowPrev(e.target.checked)} />Show previous</label>}
+    >
       <div style={{ height: 540 }}>
         <ResponsiveContainer>
           <RadarChart data={data} outerRadius="75%">
@@ -198,7 +202,7 @@ export function WeekBodyView({ workouts, opts }: { workouts: Workout[]; opts: Op
           </button>
         ))}
         <button className={'day wide' + (selDay === 'all' ? ' on' : '')} onClick={() => setSelDay('all')}>All 7</button>
-        <button className="dnav" onClick={() => setEnd(addDays(end, 7))}>›</button>
+        <button className="dnav" disabled={addDays(end, 7) > startOfDay(new Date())} onClick={() => setEnd(addDays(end, 7))}>›</button>
       </div>
       <div className="stage tall"><Body scores={scores} mode={mode} /></div>
       <div className="foot"><Legend /><span className="hint">{ws.length} workout{ws.length === 1 ? '' : 's'}</span></div>
@@ -247,7 +251,7 @@ export function MonthlyReportView({ workouts, opts, anchor, setAnchor }: { worko
       <Card title={`Monthly report — ${periodLabel('month', anchor)}`} right={
         <div className="nav">
           <button onClick={() => setAnchor(shiftAnchor('month', anchor, -1))}>‹</button>
-          <button onClick={() => setAnchor(shiftAnchor('month', anchor, 1))}>›</button>
+          <button disabled={!canGoForward('month', anchor)} onClick={() => setAnchor(shiftAnchor('month', anchor, 1))}>›</button>
         </div>
       }>
         <div className="stats">

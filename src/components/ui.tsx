@@ -1,6 +1,6 @@
 import { ReactNode } from 'react'
 import { heatColor, Muscle, MUSCLES, Scores } from '../lib/muscles'
-import { Period, periodLabel, shiftAnchor } from '../lib/data'
+import { canGoForward, Period, periodLabel, shiftAnchor } from '../lib/data'
 
 export function Seg<T extends string>({ value, options, onChange }: { value: T; options: [T, string][]; onChange: (v: T) => void }) {
   return (
@@ -23,7 +23,7 @@ export function PeriodBar({ period, setPeriod, anchor, setAnchor, hideAll }: {
       <div className="nav">
         <button disabled={period === 'all'} onClick={() => setAnchor(shiftAnchor(period, anchor, -1))} aria-label="Previous">‹</button>
         <span className="lbl">{periodLabel(period, anchor)}</span>
-        <button disabled={period === 'all'} onClick={() => setAnchor(shiftAnchor(period, anchor, 1))} aria-label="Next">›</button>
+        <button disabled={!canGoForward(period, anchor)} onClick={() => setAnchor(shiftAnchor(period, anchor, 1))} aria-label="Next">›</button>
         <button className="today" disabled={period === 'all'} onClick={() => setAnchor(new Date())}>Today</button>
       </div>
     </div>
