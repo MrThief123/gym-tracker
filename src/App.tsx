@@ -2,14 +2,13 @@ import { useEffect, useMemo, useState } from 'react'
 import { demoWorkouts, Overrides, parseWorkouts, Period, Workout } from './lib/data'
 import { PeriodBar } from './components/ui'
 import {
-  BodyMapView, DataView, DistributionChartView, ExercisesView, MonthlyReportView, SetCountView, TimelineView, WeekBodyView,
+  BodyMapView, DataView, DistributionChartView, ExercisesView, MonthlyReportView, SetCountView, WeekBodyView,
 } from './views'
 
-type View = 'body' | 'timeline' | 'sets' | 'chart' | 'week' | 'exercises' | 'report' | 'data'
+type View = 'body' | 'sets' | 'chart' | 'week' | 'exercises' | 'report' | 'data'
 
 const NAV: [View, string, string][] = [
   ['body', 'Body map', '🧍'],
-  ['timeline', 'Lifetime heat map', '🔥'],
   ['sets', 'Set count per muscle', '📊'],
   ['chart', 'Muscle distribution (chart)', '🕸'],
   ['week', 'Muscle distribution (body)', '🗓'],
@@ -69,7 +68,6 @@ export default function App() {
       <main>
         {PERIOD_VIEWS.includes(view) && <PeriodBar period={period} setPeriod={setPeriod} anchor={anchor} setAnchor={setAnchor} />}
         {view === 'body' && <BodyMapView {...common} />}
-        {view === 'timeline' && <TimelineView workouts={workouts} opts={opts} onPick={(p, d) => { setPeriod(p); setAnchor(d); setView('body') }} />}
         {view === 'sets' && <SetCountView {...common} />}
         {view === 'chart' && <DistributionChartView {...common} />}
         {view === 'week' && <WeekBodyView workouts={workouts} opts={opts} />}

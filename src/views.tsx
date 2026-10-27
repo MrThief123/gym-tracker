@@ -3,10 +3,10 @@ import { Bar, BarChart, CartesianGrid, Legend as RLegend, PolarAngleAxis, PolarG
 import Body, { BodyMode } from './components/Body'
 import { Card, fmtSets, Legend, MuscleList, Seg, Stat } from './components/ui'
 import {
-  addDays, bucketLabel, buckets, canGoForward, exerciseSummaries, inRange, mappingFor, muscleStats, Opts, Period, rangeFor,
+  addDays, canGoForward, exerciseSummaries, inRange, mappingFor, muscleStats, Opts, Period, rangeFor,
   scoresFor, shiftAnchor, startOfDay, summarize, unmappedExercises, Workout, Overrides, periodLabel, parseWorkouts,
 } from './lib/data'
-import { heatColor, Muscle, MUSCLES, Mapping } from './lib/muscles'
+import { Muscle, MUSCLES, Mapping } from './lib/muscles'
 
 interface Common { workouts: Workout[]; opts: Opts; period: Period; anchor: Date }
 
@@ -14,7 +14,7 @@ const tip = { background: '#161a22', border: '1px solid #2a303c', borderRadius: 
 
 // ---------- Body map (home) ----------
 export function BodyMapView({ workouts, opts, period, anchor }: Common) {
-  const [mode, setMode] = useState<BodyMode>('3d')
+  const [mode, setMode] = useState<BodyMode>('2d')
   const [spin, setSpin] = useState(false)
   const [sel, setSel] = useState<Muscle | null>(null)
   const [hover, setHover] = useState<Muscle | null>(null)
@@ -29,7 +29,7 @@ export function BodyMapView({ workouts, opts, period, anchor }: Common) {
         right={
           <div className="row">
             {mode === '3d' && <label className="chk"><input type="checkbox" checked={spin} onChange={(e) => setSpin(e.target.checked)} />Auto-rotate</label>}
-            <Seg value={mode} options={[['3d', '3D'], ['2d', '2D']]} onChange={setMode} />
+            <Seg value={mode} options={[['2d', '2D'], ['3d', '3D']]} onChange={setMode} />
           </div>
         }
       >
@@ -42,7 +42,7 @@ export function BodyMapView({ workouts, opts, period, anchor }: Common) {
             </div>
           )}
         </div>
-        <div className="foot"><Legend /><span className="hint">{mode === '3d' ? 'Drag to rotate · scroll to zoom · click a muscle' : 'Front and back'}</span></div>
+        <div className="foot"><Legend /><span className="hint">{mode === '3d' ? 'Drag to rotate · scroll to zoom · click a muscle' : 'Hover or click a muscle'}</span></div>
       </Card>
       <div className="col">
         <Card>
@@ -58,67 +58,6 @@ export function BodyMapView({ workouts, opts, period, anchor }: Common) {
           <p className="hint">Primary muscle = 1 set, secondary = ½ set.</p>
         </Card>
       </div>
-    </div>
-  )
-}
-
-// ---------- Lifetime timeline ----------
-export function TimelineView({ workouts, opts, onPick }: { workouts: Workout[]; opts: Opts; onPick: (p: Period, d: Date) => void }) {
-  const [gran, setGran] = useState<Exclude<Period, 'all'>>('month')
-  const cols = useMemo(() => buckets(workouts, gran), [workouts, gran])
-  const data = useMemo(
-    () => cols.map((d) => {
-      const ws = inRange(workouts, rangeFor(gran, d))
-      return { d, scores: scoresFor(ws, opts), n: ws.length }
-    }),
-    [cols, workouts, opts, gran],
-  )
-  const max = Math.max(0.0001, ...data.flatMap((c) => Object.values(c.scores)))
-  const maxTotal = Math.max(1, ...data.map((c) => Object.values(c.scores).reduce((a, b) => a + b, 0)))
-  const cell = gran === 'day' ? 9 : gran === 'week' ? 16 : 30
-  const tickEvery = gran === 'day' ? 14 : gran === 'week' ? 4 : gran === 'month' ? 2 : 1
-  if (!cols.length) return <Card><p className="empty">No data yet.</p></Card>
-  const lifetime = scoresFor(workouts, opts)
-  return (
-    <div className="col">
-      <Card title="Lifetime heat map" right={<Seg value={gran} options={[['year', 'Year'], ['month', 'Month'], ['week', 'Week'], ['day', 'Day']]} onChange={setGran} />}>
-        <p className="hint">Each column is a {gran}; colour is how hard that muscle was trained relative to your busiest cell. Click a column to open it on the body.</p>
-        <div className="hscroll">
-          <div className="grid" style={{ ['--cell' as string]: `${cell}px` }}>
-            <div className="grow gtop">
-              <span className="glabel" />
-              {data.map((c, i) => (
-                <button key={i} className="gcol totalbar" title={`${bucketLabel(gran, c.d)} — ${c.n} workouts`} onClick={() => onPick(gran, c.d)}>
-                  <i style={{ height: `${(Object.values(c.scores).reduce((a, b) => a + b, 0) / maxTotal) * 100}%` }} />
-                </button>
-              ))}
-            </div>
-            {MUSCLES.map((m) => (
-              <div className="grow" key={m}>
-                <span className="glabel">{m}</span>
-                {data.map((c, i) => (
-                  <button
-                    key={i}
-                    className="gcol"
-                    style={{ background: heatColor(c.scores[m] / max) }}
-                    title={`${m} · ${bucketLabel(gran, c.d)} · ${fmtSets(c.scores[m])} sets`}
-                    onClick={() => onPick(gran, c.d)}
-                  />
-                ))}
-              </div>
-            ))}
-            <div className="grow gaxis">
-              <span className="glabel" />
-              {data.map((c, i) => (
-                <span key={i} className="gcol tick">{i % tickEvery === 0 ? bucketLabel(gran, c.d) : ''}</span>
-              ))}
-            </div>
-          </div>
-        </div>
-      </Card>
-      <Card title="Lifetime totals by muscle">
-        <MuscleList scores={lifetime} />
-      </Card>
     </div>
   )
 }
@@ -182,7 +121,7 @@ export function DistributionChartView({ workouts, opts, period, anchor }: Common
 export function WeekBodyView({ workouts, opts }: { workouts: Workout[]; opts: Opts }) {
   const [end, setEnd] = useState(() => startOfDay(new Date()))
   const [selDay, setSelDay] = useState<number | 'all'>(6)
-  const [mode, setMode] = useState<BodyMode>('3d')
+  const [mode, setMode] = useState<BodyMode>('2d')
   const days = Array.from({ length: 7 }, (_, i) => addDays(end, i - 6))
   const dayWs = days.map((d) => inRange(workouts, rangeFor('day', d)))
   const ws = selDay === 'all' ? dayWs.flat() : dayWs[selDay]
@@ -190,7 +129,7 @@ export function WeekBodyView({ workouts, opts }: { workouts: Workout[]; opts: Op
   return (
     <Card
       title="Last 7 days body graph"
-      right={<div className="row"><Seg value={mode} options={[['3d', '3D'], ['2d', '2D']]} onChange={setMode} /></div>}
+      right={<div className="row"><Seg value={mode} options={[['2d', '2D'], ['3d', '3D']]} onChange={setMode} /></div>}
     >
       <div className="days">
         <button className="dnav" onClick={() => setEnd(addDays(end, -7))}>‹</button>
@@ -262,7 +201,7 @@ export function MonthlyReportView({ workouts, opts, anchor, setAnchor }: { worko
         </div>
       </Card>
       <div className="split">
-        <Card title="Body heat map"><div className="stage"><Body scores={scores} mode="3d" /></div><div className="foot"><Legend /></div></Card>
+        <Card title="Body heat map"><div className="stage"><Body scores={scores} mode="2d" /></div><div className="foot"><Legend /></div></Card>
         <div className="col">
           <Card title="Highlights">
             <p>Most trained: <b>{top.join(', ') || '—'}</b></p>
