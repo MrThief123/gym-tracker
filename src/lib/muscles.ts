@@ -1,3 +1,5 @@
+import { HEVY_EXERCISES } from './hevyExercises'
+
 export const MUSCLES = [
   'Chest',
   'Shoulders',
@@ -62,7 +64,9 @@ const RULES: [RegExp, Mapping][] = [
 ]
 
 export function lookupMapping(title: string): Mapping | null {
-  const t = title.toLowerCase()
+  const t = title.toLowerCase().trim()
+  const known = HEVY_EXERCISES[t]
+  if (known) return { primary: known[0], secondary: known[1] }
   for (const [re, m] of RULES) if (re.test(t)) return m
   return null
 }
