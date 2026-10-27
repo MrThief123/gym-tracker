@@ -161,6 +161,12 @@ export function shiftAnchor(p: Period, anchor: Date, dir: 1 | -1): Date {
   }
 }
 
+// Can the anchor move one period forward without starting after today?
+export function canGoForward(p: Period, anchor: Date): boolean {
+  if (p === 'all') return false
+  return rangeFor(p, shiftAnchor(p, anchor, 1))[0] <= new Date()
+}
+
 export function inRange(ws: Workout[], [s, e]: [Date, Date]) {
   return ws.filter((w) => w.start >= s && w.start < e)
 }
