@@ -6,6 +6,7 @@ export const MUSCLES = [
   'Forearms',
   'Abdominals',
   'Traps',
+  'Neck',
   'Lats',
   'Upper Back',
   'Lower Back',
@@ -32,6 +33,7 @@ export interface Mapping {
 // Order matters: first matching rule wins, so specific patterns go first.
 const RULES: [RegExp, Mapping][] = [
   [/running|treadmill|cycling|bike|rowing machine|elliptical|stair|jump rope|swim|walk|hike|cardio|sprint/, { primary: [], secondary: [], cardio: true }],
+  [/neck/, { primary: ['Neck'], secondary: ['Traps'] }],
   [/wrist curl|forearm|farmer|grip/, { primary: ['Forearms'], secondary: [] }],
   [/leg curl|nordic|hamstring curl/, { primary: ['Hamstrings'], secondary: ['Calves'] }],
   [/leg extension/, { primary: ['Quadriceps'], secondary: [] }],
