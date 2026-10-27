@@ -1,7 +1,8 @@
 import { Canvas, ThreeEvent } from '@react-three/fiber'
-import { OrbitControls, OrthographicCamera } from '@react-three/drei'
+import { OrbitControls } from '@react-three/drei'
 import { useMemo, useState } from 'react'
 import { heatColor, Muscle, Scores } from '../lib/muscles'
+import Body2D from './Body2D'
 
 type Vec = [number, number, number]
 interface Part {
@@ -121,31 +122,8 @@ function Lights() {
   )
 }
 
-function FlatView({ side, ...rest }: { side: 'front' | 'back' } & Omit<Props, 'mode' | 'autoRotate'>) {
-  return (
-    <Canvas dpr={[1, 2]} style={{ flex: 1, minWidth: 0 }}>
-      <OrthographicCamera
-        makeDefault
-        position={[0, -0.02, side === 'front' ? 5 : -5]}
-        rotation={[0, side === 'front' ? 0 : Math.PI, 0]}
-        zoom={290}
-        near={0.1}
-        far={20}
-      />
-      <Lights />
-      <Figure {...rest} />
-    </Canvas>
-  )
-}
-
 export default function Body({ mode, autoRotate, ...rest }: Props) {
-  if (mode === '2d')
-    return (
-      <div style={{ display: 'flex', width: '100%', height: '100%' }}>
-        <FlatView side="front" {...rest} />
-        <FlatView side="back" {...rest} />
-      </div>
-    )
+  if (mode === '2d') return <Body2D scores={rest.scores} onHover={rest.onHover} onSelect={rest.onSelect} selected={rest.selected} />
   return (
     <Canvas dpr={[1, 2]} camera={{ position: [1.3, 0.3, 2.6], fov: 32 }}>
       <Lights />

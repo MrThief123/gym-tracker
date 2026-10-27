@@ -223,27 +223,6 @@ export function summarize(ws: Workout[], o: Opts) {
   return { workouts: ws.length, sets, volume, minutes }
 }
 
-// ---------- Timeline buckets ----------
-export function buckets(ws: Workout[], p: Exclude<Period, 'all'>): Date[] {
-  if (!ws.length) return []
-  const first = ws[0].start, last = ws[ws.length - 1].start
-  const out: Date[] = []
-  let cur = rangeFor(p, first)[0]
-  const end = rangeFor(p, last)[0]
-  while (cur <= end) { out.push(cur); cur = shiftAnchor(p, cur, 1) }
-  return out
-}
-
-export function bucketLabel(p: Period, d: Date): string {
-  switch (p) {
-    case 'day': return fmt(d, { month: 'short', day: 'numeric' })
-    case 'week': return fmt(d, { month: 'short', day: 'numeric' })
-    case 'month': return fmt(d, { month: 'short', year: '2-digit' })
-    case 'year': return String(d.getFullYear())
-    default: return 'All'
-  }
-}
-
 // ---------- Demo data ----------
 export function demoWorkouts(): Workout[] {
   const split: Record<string, string[]> = {
